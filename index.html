@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ha Dang Nguyen Hoang — Portfolio</title>
+  <meta name="description" content="Portfolio of Ha Dang Nguyen Hoang — vision-driven, human-centered creative consultancy.">
+  <meta property="og:title" content="Ha Dang Nguyen Hoang — Portfolio">
+  <meta property="og:description" content="Vision-driven, human-centered creative consultancy.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ivory:#FFFFF0;
+      --eerie:#1A1C1D;
+      --mexican:#DC0073;
+      --lavender:#FFB8DE;
+      --maize:#FEE440;
+
+      --fs-0:14px; --fs-1:16px; --fs-2:18px; --fs-3:22px; --fs-4:28px; --fs-5:40px; --fs-6:64px; --fs-7:96px;
+      --radius:18px; --gap:20px; --shadow:0 10px 30px rgba(0,0,0,.15);
+      --container:1200px;
+    }
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.5;background:var(--ivory);color:var(--eerie)}
+    a{color:var(--eerie);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s ease}
+    a:hover{border-color:var(--eerie)}
+    .container{max-width:var(--container);margin-inline:auto;padding:clamp(16px,3vw,32px)}
+    img{max-width:100%;display:block}
+    .smooth-transition{transition:all .2s ease}
+    .hover-underline:hover{border-bottom-color:currentColor}
+    .section-ivory{background:var(--ivory);color:var(--eerie)}
+    .section-dark{background:var(--eerie);color:var(--ivory)}
+    .nav{position:sticky;top:0;z-index:40;background:var(--ivory);border-bottom:1px solid #e7e7da}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:var(--gap)}
+    .brand{font-weight:800;font-size:var(--fs-2)}
+    #home{padding-block:clamp(48px,8vw,120px)}
+    .hero h1{font-size:clamp(40px,9vw,120px);line-height:.95;margin:0;font-weight:800;letter-spacing:-0.02em}
+    .hero p{font-size:var(--fs-3);max-width:60ch;margin-top:16px}
+    .chip{display:inline-block;padding:10px 14px;border-radius:999px;background:linear-gradient(135deg,var(--maize),var(--lavender));color:var(--eerie);font-weight:700}
+    #about{background:linear-gradient(180deg,var(--ivory),#fffbe6)}
+    .about-grid{display:grid;grid-template-columns:1fr;gap:32px;align-items:center}
+    @media (min-width:900px){.about-grid{grid-template-columns:1fr 1.2fr}}
+    .about-card{background:var(--eerie);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+    .about-copy h2{font-size:var(--fs-5);margin:0 0 12px 0}
+    .about-copy p{font-size:var(--fs-2)}
+    .bullets{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:8px 20px}
+    .bullets li{list-style:none;padding:10px 12px;border-radius:12px;background:var(--ivory);font-size:var(--fs-1);font-weight:600;border:1px solid rgba(26,28,29,.14);box-shadow:0 1px 0 rgba(26,28,29,.04);transition:all .25s ease}
+    .profile-wrap{position:relative;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+    .profile{width:100%;height:auto;image-rendering:pixelated;transform:translateZ(0);filter:contrast(110%) saturate(105%)}
+    .profile-wrap:hover .profile{animation:unpixel 900ms steps(6,end) forwards}
+    @keyframes unpixel{0%{image-rendering:pixelated;filter:blur(2px) contrast(110%)} 100%{image-rendering:auto;filter:blur(0)} }
+
+    #projects{padding-block:clamp(48px,6vw,96px)}
+    .section-title{font-size:var(--fs-5);margin:0 0 16px 0}
+    .grid{display:grid;gap:24px}
+    @media(min-width:700px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(min-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+
+    .card{position:relative;border-radius:20px;overflow:hidden;background:var(--lavender);box-shadow:var(--shadow);aspect-ratio:4/5;animation:driftX 8s ease-in-out infinite;perspective:1000px}
+    .grid .card:nth-child(2n){animation-duration:10s}
+    .grid .card:nth-child(3n){animation-duration:12s}
+    .grid .card:nth-child(5n){animation-duration:9s}
+
+    .card-media{position:absolute;inset:0;background:#ddd;overflow:hidden}
+    .scroll{position:absolute;inset:0}
+    .scroll-track{position:absolute;top:0;left:-100%;height:100%;width:100%;display:flex;animation:slideImageX 20s linear infinite}
+    .scroll-track img{width:100%;height:100%;object-fit:cover;flex:0 0 100%}
+    @keyframes slideImageX{0%{transform:translateX(0)}100%{transform:translateX(33.333%)}}
+
+    .card h3{margin:14px 16px 4px;font-size:var(--fs-3)}
+    .card p{margin:0 16px 18px;font-size:var(--fs-1)}
+    .card a.more{display:inline-block;margin:0 16px 18px;font-weight:700}
+    .card::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,var(--eerie),var(--maize));opacity:0;transition:opacity .25s ease;mix-blend:multiply}
+    .card:hover{transform:translateY(-6px);transition:transform .2s ease}
+    .bullets:hover li{opacity:.45;filter:saturate(.9)}
+    .bullets li:hover{opacity:1;background:linear-gradient(135deg,#007BFF,var(--eerie));color:var(--ivory);border:none;box-shadow:0 4px 12px rgba(0,0,0,.15);transform:translateY(-1px)}
+    .card:hover::after{opacity:.35}
+    .card *{position:relative;z-index:1;color:var(--ivory)}
+
+    #collaborate{background:var(--eerie);color:var(--ivory);padding-block:clamp(48px,8vw,120px)}
+    .cta h2{font-size:clamp(32px,6vw,72px);margin:0 0 12px 0}
+    .cta p{margin:0 0 20px 0;font-size:var(--fs-2)}
+    .btn{display:inline-block;padding:14px 20px;border-radius:999px;font-weight:800}
+    .btn-primary{background:var(--maize);color:var(--eerie)}
+    .btn-secondary{margin-left:12px;border:2px solid var(--ivory);color:var(--ivory)}
+
+    #contact{padding-block:48px}
+    .socials{display:flex;gap:14px;flex-wrap:wrap}
+    .socials a{padding:10px 14px;border-radius:12px;background:var(--lavender);font-weight:700}
+    .socials a:hover{background:linear-gradient(135deg,var(--lavender),var(--maize))}
+    footer{border-top:1px solid #e7e7da;padding:18px 0;font-size:var(--fs-0)}
+    :focus-visible{outline:3px solid var(--mexican);outline-offset:2px}
+    html{scroll-behavior:smooth}
+    section{scroll-margin-top:96px}
+
+    .card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .6s}
+    .card:hover .card-inner{transform:rotateY(180deg)}
+    .card-face{position:absolute;inset:0;backface-visibility:hidden;display:flex;flex-direction:column}
+    .card-front{background:var(--lavender)}
+    .card-back{background:var(--eerie);transform:rotateY(180deg);padding:16px;gap:8px;justify-content:center}
+    .card-back h3{margin:0 0 8px 0;font-size:var(--fs-3)}
+    .card-back p{margin:0;font-size:var(--fs-1)}
+
+    /* Modal */
+    .modal {display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background-color:rgba(0,0,0,0.7);justify-content:center;align-items:center;}
+    .modal-content {background-color:var(--eerie);color:var(--ivory);padding:20px;border-radius:12px;width:80%;max-width:900px;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:fadeIn .25s ease;}
+    .modal-body{display:flex;gap:20px}
+    .modal-left{flex:1;min-width:45%}
+    .modal-left img{width:100%;height:auto;border-radius:8px;display:block}
+    .modal-right{flex:1}
+    .close{float:right;font-size:28px;font-weight:bold;cursor:pointer;color:var(--ivory)}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+  <nav class="nav" aria-label="Primary">
+    <div class="container nav-inner">
+      <div class="brand">Ha Dang Nguyen Hoang</div>
+      <div class="links" role="menubar" aria-label="Section links">
+        <a href="#home" role="menuitem">Home</a>
+        <span> · </span>
+        <a href="#about" role="menuitem">About</a>
+        <span> · </span>
+        <a href="#projects" role="menuitem">Projects</a>
+        <span> · </span>
+        <a href="#contact" role="menuitem">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <header id="home" class="container hero">
+    <span class="chip">Portfolio</span>
+    <h1>Vision-driven. Human-centered.</h1>
+    <p>I help brands and their customers communicate with meaning, purpose, and intent. Branding, identity, type, packaging, spatial, motion, illustration, 3D, and comprehensive guidelines.</p>
+  </header>
+
+  <section id="about" class="container">
+    <div class="about-grid">
+      <div class="profile-wrap about-card" aria-label="Profile image">
+        <img class="profile" src="profile.jpg" alt="Profile — Ha Dang Nguyen Hoang">
+      </div>
+      <div class="about-copy">
+        <h2>About</h2>
+        <p>I’m Ha Dang Nguyen Hoang, a 19-year-old student at the University of Economics specializing in art generated by technology. My work spans branding, identity, type, packaging, spatial design, motion, illustration, 3D, and guideline systems, helping brands connect with purpose and clarity. I aim to advance into web development to build platforms that authentically express my identity and push beyond traditional limits and my current abilities.</p>
+        <h3 style="font-size:var(--fs-4);margin:16px 0 8px 0">Branding</h3>
+        <ul class="bullets" aria-label="Capabilities">
+          <li>Brand Strategy &amp; Architecture</li>
+          <li>ToV &amp; Messaging Framework</li>
+          <li>Visual Identity</li>
+          <li>Typeface Design</li>
+          <li>Packaging Design</li>
+          <li>Event, Installation &amp; Spatial</li>
+          <li>Motions, Illustrations, and 3D</li>
+          <li>Comprehensive Brand Guideline &amp; System</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects" class="container">
+    <h2 class="section-title">Select Projects</h2>
+    <div id="project-grid" class="grid" aria-live="polite"></div>
+  </section>
+
+  <section id="collaborate">
+    <div class="container cta">
+      <h2>Open to collaborate? I am. All ears — and all in.</h2>
+      <p>The best outcomes start with a clear conversation.</p>
+      <a class="btn btn-primary" href="mailto:hello@example.com">Send me a hello</a>
+      <a class="btn btn-secondary" href="resume.pdf" target="_blank" rel="noopener">View résumé</a>
+    </div>
+  </section>
+
+  <section id="contact" class="container">
+    <h2 class="section-title">Contact</h2>
+    <p>Email: <a href="mailto:hoanghdn9@gmail.com">hoanghdn9@gmail.com</a></p>
+    <div class="socials">
+      <a href="https://www.facebook.com/rosingate" target="_blank" rel="noopener" aria-label="Facebook">Facebook</a>
+      <a href="https://www.instagram.com/noah.doart/" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+    </div>
+  </section>
+
+  <footer class="container">© <span id="year"></span> Ha Dang Nguyen Hoang</footer>
+
+  <!-- Modal -->
+  <div id="modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <div class="modal-body">
+        <div class="modal-left">
+          <img id="modal-img" src="" alt="Project Image">
+        </div>
+        <div class="modal-right">
+          <h3>About</h3>
+          <p id="modal-about">Text</p>
+          <h3>Scope</h3>
+          <p id="modal-scope">Text</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Project data: per-project modal content + inside image
+    const projects = [
+      {
+        title: 'DAO Label Spotify Cover',
+        summary: 'A project that I worked to create digital album covers for artists of DAO Label.',
+        cover: 'dao-label-spotify.png',
+        inside: 'inside_dao-label-spotify.png',
+        about: 'DAO Label is an independent music brand. This study explored cover directions for multiple Spotify releases.',
+        scope: 'Art direction, cover design, export specs for Spotify canvases and thumbnails.'
+      },
+      {
+        title: 'Rockey',
+        summary: 'Design work Rockey project.',
+        cover: 'Rockey.png',
+        inside: 'Rockey.png',
+        about: 'Artwork I made after watching "Tailor Swif" by A$AP Rocky.',
+        scope: 'Packaging Design.'
+      },
+      {
+        title: 'CRG',
+        summary: 'Design work CRG project.',
+        cover: 'CRG.png',
+        inside: 'CRG.png',
+        about: 'Poster for one of my favorite rapper Central Cee.',
+        scope: 'Editorial Design.'
+      }
+    ];
+
+    // Render cards
+    const grid = document.getElementById('project-grid');
+    grid.innerHTML = projects.map(p => `
+      <article class="card">
+        <div class="card-inner">
+          <div class="card-face card-front">
+            <div class="card-media">
+              <div class="scroll">
+                <div class="scroll-track">
+                  <img src="${p.cover}" alt="${p.title}" loading="lazy">
+                  <img src="${p.cover}" alt="" aria-hidden="true">
+                  <img src="${p.cover}" alt="" aria-hidden="true">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-face card-back">
+            <h3>${p.title}</h3>
+            <p>${p.summary}</p>
+            <a class="more"
+               href="#"
+               data-inside="${p.inside || p.cover}"
+               data-about="${p.about || ''}"
+               data-scope="${p.scope || ''}">View</a>
+          </div>
+        </div>
+      </article>
+    `).join('');
+
+    // Modal behavior with per-project content
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modal-img');
+    const modalAbout = document.getElementById('modal-about');
+    const modalScope = document.getElementById('modal-scope');
+    const closeBtn = document.querySelector('.close');
+
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('more')) {
+        e.preventDefault();
+        const btn = e.target;
+        modalImg.src = btn.dataset.inside;
+        modalAbout.textContent = btn.dataset.about || '';
+        modalScope.textContent = btn.dataset.scope || '';
+        modal.style.display = 'flex';
+      }
+    });
+
+    closeBtn.onclick = () => modal.style.display = 'none';
+    window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+  </script>
+</body>
+</html>
