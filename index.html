@@ -114,6 +114,51 @@
     .close{float:right;font-size:28px;font-weight:bold;cursor:pointer;color:var(--ivory)}
     @keyframes fadeIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
   </style>
+<!-- ===== Motion + Particles (CSS additions) ===== -->
+<style id="motion-additions">
+  /* Global smoothing and GPU hints */
+  *{scroll-behavior:smooth}
+  .will-change-transform{will-change:transform}
+  .will-change-opacity{will-change:opacity}
+
+  /* Entry reveal */
+  .reveal [data-reveal]{opacity:0;transform:translateY(10px);transition:opacity .6s cubic-bezier(.22,.61,.36,1),transform .6s cubic-bezier(.22,.61,.36,1)}
+  .reveal.ready [data-reveal]{opacity:1;transform:none}
+  .reveal.ready [data-reveal].d1{transition-delay:.06s}
+  .reveal.ready [data-reveal].d2{transition-delay:.12s}
+  .reveal.ready [data-reveal].d3{transition-delay:.18s}
+  .reveal.ready [data-reveal].d4{transition-delay:.24s}
+  .reveal.ready [data-reveal].d5{transition-delay:.30s}
+
+  /* Smooth hover/active states without changing your current visuals */
+  a, .btn, .bullets li, .card, .nav{transition:transform .3s ease, box-shadow .3s ease, background .3s ease, border-color .3s ease, opacity .3s ease}
+  .btn:active, .bullets li:active, .card:active{transform:translateY(1px)}
+
+  /* Subtle inertial tilt (applied via JS) */
+  .tilt{transform-style:preserve-3d; will-change:transform}
+  .tilt-shadow{box-shadow:var(--shadow); transition:box-shadow .3s ease}
+
+  /* Cursor-follow particle canvas */
+  #bg-canvas{
+    position:fixed; inset:0; z-index:0; pointer-events:none; width:100vw; height:100vh;
+    contain:strict;
+    background: radial-gradient(1200px 800px at 60% -10%, rgba(220,0,115,.06), transparent 60%),
+                radial-gradient(900px 700px at 10% 120%, rgba(254,228,64,.06), transparent 60%),
+                radial-gradient(700px 600px at 110% 50%, rgba(255,184,222,.06), transparent 60%);
+    mix-blend-mode: normal;
+  }
+
+  /* Ensure content stacks above the canvas */
+  body > *:not(canvas){position:relative; z-index:1}
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .reveal [data-reveal]{opacity:1;transform:none}
+    a, .btn, .bullets li, .card, .nav{transition:none}
+    #bg-canvas{display:none}
+  }
+</style>
+
 </head>
 <body>
   <nav class="nav" aria-label="Primary">
@@ -202,6 +247,302 @@
       </div>
     </div>
   </div>
+<!-- ===== Motion + Particles (JS additions) — v2 (denser, brighter, drag-shatter) ===== -->
+<script id="motion-additions">
+(function(){
+  // ---- Entry reveal (unchanged) ----
+  document.documentElement.classList.add('reveal');
+  ['.nav','.hero','#about','.about-card','.about-copy','#projects','#collaborate','#contact','footer'].forEach((sel,i)=>{
+    document.querySelectorAll(sel).forEach(el=>{
+      el.setAttribute('data-reveal','');
+      if(i>0) el.classList.add('d'+(i%5));
+    });
+  });
+  requestAnimationFrame(()=>document.documentElement.classList.add('ready'));
+
+  // ---- Cursor-following particle background (denser, brighter, with drag shatter) ----
+  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  const canvas = document.getElementById('bg-canvas') || (()=>{ const c=document.createElement('canvas'); c.id='bg-canvas'; document.body.insertBefore(c, document.body.firstChild); return c; })();
+  const ctx = canvas.getContext('2d', { alpha: true });
+
+  let W = 0, H = 0;
+  let particles = [];
+  const pool = [];
+  const hues = [
+    {h: 330, s: 85, l: 60}, // magenta family (near --mexican)
+    {h: 50,  s: 90, l: 60}, // maize
+    {h: 320, s: 80, l: 65}, // lavender
+  ];
+
+  const BASE_COUNT = 2000;          // up from 120
+  const MAX_COUNT  = 6000;          // pool cap
+  const TRAIL_STRENGTH = 0.16;     // stronger pull
+  const FRICTION = 0.92;           // slightly less damping for longer streaks
+  const NOISE = 0.55;              // more drift
+  const MAX_SPEED = 3.6;           // faster cap
+  const SHATTER_SPAWN = 10;        // particles per frame while dragging
+  const SHATTER_BOOST = 3.2;       // initial ejection speed multiplier
+
+  const mouse = { x:null, y:null, vx:0, vy:0, dragging:false };
+  let lastX = 0, lastY = 0, lastT = performance.now();
+
+  function resize(){
+    const r = canvas.getBoundingClientRect();
+    W = Math.floor(r.width  * dpr);
+    H = Math.floor(r.height * dpr);
+    canvas.width = W; canvas.height = H;
+    canvas.style.width = r.width + 'px';
+    canvas.style.height = r.height + 'px';
+    if (particles.length === 0){
+      for(let i=0;i<BASE_COUNT;i++) spawn(Math.random()*W, Math.random()*H, 0, 0, true);
+    }
+  }
+  resize();
+  addEventListener('resize', resize);
+
+  function spawn(x, y, vx, vy, soft=false){
+    const hue = hues[(Math.random()*hues.length)|0];
+    const p = pool.pop() || {};
+    p.x = x; p.y = y;
+    p.vx = vx + (Math.random()-0.5)*(soft?0.6:1.2);
+    p.vy = vy + (Math.random()-0.5)*(soft?0.6:1.2);
+    p.r  = (Math.random()*1.6 + 1.0) * dpr;                 // bigger
+    p.a  = 0.16 + Math.random()*0.22;                       // brighter
+    p.h  = hue.h; p.s = hue.s; p.l = hue.l;
+    p.life = 1.0;                                           // normalized life
+    particles.push(p);
+    if(particles.length > MAX_COUNT){
+      pool.push(particles.shift());
+    }
+  }
+
+  // Input
+  addEventListener('pointermove', (e)=>{
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * dpr;
+    const y = (e.clientY - rect.top)  * dpr;
+    const now = performance.now();
+    const dt = Math.max(16, now - lastT);
+    mouse.vx = (x - lastX)/dt;
+    mouse.vy = (y - lastY)/dt;
+    mouse.x = x; mouse.y = y;
+    lastX = x; lastY = y; lastT = now;
+  }, {passive:true});
+
+  addEventListener('pointerdown', ()=>{
+    mouse.dragging = true;
+    // immediate burst
+    if(mouse.x!=null){
+      for(let i=0;i<36;i++){
+        const ang = Math.random()*Math.PI*2;
+        const spd = (Math.random()*1.8 + 0.8)*SHATTER_BOOST*dpr;
+        spawn(mouse.x, mouse.y, Math.cos(ang)*spd, Math.sin(ang)*spd);
+      }
+    }
+  });
+  addEventListener('pointerup',   ()=> mouse.dragging = false);
+  addEventListener('pointerleave',()=> { mouse.x = mouse.y = null; mouse.dragging=false; });
+
+  // Main loop
+  function step(){
+    // Motion blur: fade old frame instead of full clear
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(255,255,240,0.15)'; // ivory veil background
+    ctx.fillRect(0,0,W,H);
+
+    // Under-cursor glow
+    if(mouse.x!=null){
+      const g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 260*dpr);
+      g.addColorStop(0, 'rgba(254,228,64,0.18)');
+      g.addColorStop(1, 'rgba(254,228,64,0.00)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(mouse.x, mouse.y, 260*dpr, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    // Continuous shatter while dragging
+    if(mouse.dragging && mouse.x!=null){
+      for(let i=0;i<SHATTER_SPAWN;i++){
+        const ang = Math.random()*Math.PI*2;
+        const spd = (Math.random()*1.2 + 0.8)*SHATTER_BOOST*dpr;
+        spawn(mouse.x, mouse.y, Math.cos(ang)*spd + mouse.vx*90, Math.sin(ang)*spd + mouse.vy*90);
+      }
+    }
+
+    // Maintain density
+    while(particles.length < BASE_COUNT){
+      spawn(Math.random()*W, Math.random()*H, 0, 0, true);
+    }
+
+    // Draw particles
+    for(let i=0; i<particles.length; i++){
+      const p = particles[i];
+
+      // Random drift
+      p.vx += (Math.random()-0.5) * NOISE;
+      p.vy += (Math.random()-0.5) * NOISE;
+
+      // Cursor attraction + velocity influence
+      if(mouse.x!=null){
+        const dx = (mouse.x - p.x), dy = (mouse.y - p.y);
+        p.vx += dx * TRAIL_STRENGTH * 0.0019 + mouse.vx * 0.18;
+        p.vy += dy * TRAIL_STRENGTH * 0.0019 + mouse.vy * 0.18;
+      }
+
+      // Speed clamp
+      const sp = Math.hypot(p.vx, p.vy);
+      const cap = MAX_SPEED*dpr;
+      if(sp > cap){
+        const s = cap/sp;
+        p.vx *= s; p.vy *= s;
+      }
+
+      // Integrate + friction
+      const px = p.x, py = p.y; // previous pos for streak
+      p.x += p.vx; p.y += p.vy;
+      p.vx *= FRICTION; p.vy *= FRICTION;
+
+      // Wrap
+      if(p.x < -12) p.x = W+12;
+      if(p.x > W+12) p.x = -12;
+      if(p.y < -12) p.y = H+12;
+      if(p.y > H+12) p.y = -12;
+
+      // Fade life slightly when off-mouse to keep pool fresh
+      if(mouse.x==null) p.life -= 0.0015;
+      else if(mouse.dragging) p.life -= 0.003;
+      else p.life -= 0.001;
+
+      // Draw brighter, bigger, with additive blend
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle   = `hsla(${p.h}, ${p.s}%, ${p.l}%, ${p.a})`;
+ctx.strokeStyle = `hsla(${p.h}, ${p.s}%, ${Math.max(40, p.l-10)}%, ${p.a*0.8})`;
+
+
+
+      // Core dot
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+
+      // Velocity streak
+      ctx.lineWidth = (0.9 * dpr) + Math.min(1.5*dpr, sp*0.08);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(px - p.vx*2.2, py - p.vy*2.2);
+      ctx.stroke();
+
+      // Occasional sparkle on drag
+      if(mouse.dragging && Math.random() < 0.08){
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r*1.8, 0, Math.PI*2);
+        ctx.stroke();
+      }
+
+      // Recycle on life end
+      if(p.life <= 0){
+        pool.push(particles.splice(i,1)[0]);
+        i--;
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+
+  // ---- Inertial tilt and smooth scroll (unchanged) ----
+  const cards = Array.from(document.querySelectorAll('.card'));
+  const state = new WeakMap();
+  cards.forEach(card=>{
+    card.classList.add('tilt','tilt-shadow','will-change-transform');
+    state.set(card, {rx:0, ry:0, tx:0, ty:0, raf: null});
+    const bounds = ()=>card.getBoundingClientRect();
+    function onMove(e){
+      const r = bounds();
+      const cx = r.left + r.width/2, cy = r.top + r.height/2;
+      const dx = (e.clientX - cx) / (r.width/2);
+      const dy = (e.clientY - cy) / (r.height/2);
+      const maxTilt = 8;
+      const s = state.get(card);
+      s.tx = -dy * maxTilt;
+      s.ty =  dx * maxTilt;
+      if(!s.raf){
+        s.raf = requestAnimationFrame(function animate(){
+          const k = 0.14;
+          s.rx += (s.tx - s.rx) * k;
+          s.ry += (s.ty - s.ry) * k;
+          card.style.transform = `rotateX(${s.rx.toFixed(2)}deg) rotateY(${s.ry.toFixed(2)}deg)`;
+          if(Math.abs(s.tx - s.rx) > 0.01 || Math.abs(s.ty - s.ry) > 0.01){
+            s.raf = requestAnimationFrame(animate);
+          }else s.raf = null;
+        });
+      }
+    }
+    function onLeave(){
+      const s = state.get(card);
+      s.tx = 0; s.ty = 0;
+      if(!s.raf){
+        s.raf = requestAnimationFrame(function relax(){
+          const k = 0.14;
+          s.rx += (s.tx - s.rx) * k;
+          s.ry += (s.ty - s.ry) * k;
+          card.style.transform = `rotateX(${s.rx.toFixed(2)}deg) rotateY(${s.ry.toFixed(2)}deg)`;
+          if(Math.abs(s.rx) > 0.01 || Math.abs(s.ry) > 0.01){
+            s.raf = requestAnimationFrame(relax);
+          }else s.raf = null;
+        });
+      }
+    }
+    card.addEventListener('pointermove', onMove, {passive:true});
+    card.addEventListener('pointerleave', onLeave);
+  });
+
+  document.addEventListener('keydown', (e)=>{
+    const page = window.innerHeight;
+    let delta = 0;
+    if(e.key === 'PageDown') delta =  page*0.9;
+    else if(e.key === 'PageUp') delta = -page*0.9;
+    else if(e.key === 'Home') delta = -document.documentElement.scrollTop;
+    else if(e.key === 'End')  delta =  (document.documentElement.scrollHeight - document.documentElement.clientHeight) - document.documentElement.scrollTop;
+    if(delta !== 0){
+      e.preventDefault();
+      smoothScrollBy(delta);
+    }
+  }, {passive:false});
+
+  let scrollAnimating = false;
+  function smoothScrollBy(delta){
+    const start = document.documentElement.scrollTop || document.body.scrollTop;
+    const target = start + delta;
+    const dur = 520;
+    const t0 = performance.now();
+    if(scrollAnimating) return;
+    scrollAnimating = true;
+    (function anim(t){
+      const p = Math.min(1, (t - t0)/dur);
+      const ease = p<.5 ? 4*p*p*p : 1 - Math.pow(-2*p+2,3)/2;
+      const y = start + (target - start)*ease;
+      window.scrollTo({top:y, behavior:'instant'});
+      if(p<1) requestAnimationFrame(anim); else scrollAnimating = false;
+    })(t0);
+  }
+
+  // Anchor smoothing
+  document.querySelectorAll('a[href^="#"]').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if(!el) return;
+      e.preventDefault();
+      const top = el.getBoundingClientRect().top + window.pageYOffset - 88;
+      window.scrollTo({ top, behavior: 'smooth' });
+      el.setAttribute('tabindex','-1'); el.focus({preventScroll:true});
+    });
+  });
+})();
+</script>
 
   <script>
     // Year
